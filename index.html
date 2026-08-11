@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>varvatoVision Video Phone</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="/socket.io/socket.io.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brand-mark">V</div><div><b>varvato<span>Vision</span></b><small>Video Phone</small></div></div>
+  <nav>
+    <button class="nav active" data-page="home">⌂ <span>Home</span></button>
+    <button class="nav" data-page="contacts">♟ <span>Contacts</span></button>
+    <button class="nav" data-page="calls">▣ <span>Video Calls</span></button>
+    <button class="nav" data-page="messages">◌ <span>Messages</span><i id="unread">0</i></button>
+    <button class="nav" data-page="history">◷ <span>Call History</span></button>
+    <button class="nav" data-page="meetings">▦ <span>Meetings</span></button>
+    <button class="nav" data-page="favorites">☆ <span>Favorites</span></button>
+    <button class="nav" data-page="settings">⚙ <span>Settings</span></button>
+  </nav>
+  <div class="account"><div class="avatar" id="avatar">?</div><div><b id="name">Guest</b><small id="email">Sign in with Google</small><small class="online">● Online</small></div></div>
+  <div class="upgrade"><b>◆ Premium</b><small>HD calls, group calling and more.</small></div>
+</aside>
+
+<main class="main">
+<header class="topbar"><button id="menuBtn">☰</button><h2 id="title">Home</h2><div class="top-right"><div id="googleButton"></div><button id="signout" class="ghost hidden">Sign out</button></div></header>
+
+<section class="page active" id="home">
+  <div class="hero"><div><small class="eyebrow">WELCOME TO</small><h1>varvato<span>Vision</span><br>Video Phone</h1><p>High quality video calls, clear conversations and secure connections.</p><button class="primary" id="start">▣ Start Video Call</button> <button class="outline" data-go="contacts">♟ Add Contact</button></div><div class="phone"><div class="phone-inner"><div class="brand-mark">V</div><b>varvato<span>Vision</span></b><small>Video Phone</small><div class="phone-btns"><i>☎</i><i>×</i></div></div></div></div>
+  <div class="features"><article><strong class="tile purple">▣</strong><h3>Video Calls</h3><p>Make high quality video calls with anyone, anywhere.</p></article><article><strong class="tile green">◌</strong><h3>Messages</h3><p>Send instant messages and share your moments.</p></article><article><strong class="tile orange">♟</strong><h3>Group Calls</h3><p>Connect with friends or teams in one click.</p></article><article><strong class="tile blue">▣</strong><h3>Screen Share</h3><p>Share your screen for collaboration.</p></article></div>
+  <div class="columns"><article class="panel"><div class="panel-head"><h2>Recent Calls</h2><a data-go="history">View All</a></div><div id="recentCalls"></div></article><article class="panel"><div class="panel-head"><h2>Contacts</h2><a data-go="contacts">View All</a></div><div id="favoriteList"></div></article></div>
+  <div class="secure"><b>▣</b><div><h2>Secure. Private. Reliable.</h2><p>Account authentication, private sessions and browser-based encrypted media transport.</p></div></div>
+</section>
+
+<section class="page" id="contacts"><div class="heading"><div><small class="eyebrow">PEOPLE</small><h1>Contacts</h1></div></div><form id="addContact"><input id="contactEmail" type="email" placeholder="Add a contact by Google email" required><button class="primary">＋ Add Contact</button></form><p id="contactNotice"></p><div class="list" id="contactsList"></div></section>
+
+<section class="page" id="calls"><div class="empty"><h1>Video Calls</h1><p>Start a private two-person WebRTC call. Send the room link to your caller.</p><button class="primary" id="start2">▣ Start Video Call</button></div></section>
+
+<section class="page" id="messages"><div class="messages-layout"><div class="list" id="messageContacts"></div><div class="chat"><div class="chat-head" id="chatHead">Select a contact</div><div id="chatMessages"></div><form id="sendMessage"><input id="messageBody" placeholder="Type a message..." autocomplete="off"><button class="primary">Send</button></form></div></div></section>
+
+<section class="page" id="history"><div class="heading"><h1>Call History</h1></div><div class="list" id="historyList"></div></section>
+<section class="page" id="meetings"><div class="empty"><h1>Meetings</h1><p>Meeting rooms are ready to be added on top of the same WebRTC infrastructure.</p></div></section>
+<section class="page" id="favorites"><div class="empty"><h1>Favorites</h1><p>Your favorite contacts will appear here.</p></div></section>
+<section class="page" id="settings"><div class="empty"><h1>Settings</h1><p>Camera, microphone, notifications, appearance and account settings can be expanded here.</p></div></section>
+</main></div>
+
+<div class="modal hidden" id="callModal"><div class="call"><header><div><b id="callTitle">VarvatoVision Call</b><small id="callStatus">Starting...</small></div><button id="close">×</button></header><div class="stage"><video id="remote" autoplay playsinline></video><video id="local" autoplay muted playsinline></video><div class="waiting" id="waiting"><div class="brand-mark">V</div><p>Waiting for your caller…</p><small>Room code</small><strong id="roomCode"></strong><button class="outline" id="copy">Copy call link</button></div></div><footer><button id="mute">🎤</button><button id="camera">▣</button><button id="screen">🖥</button><button class="danger" id="end">☎</button></footer></div></div>
+</body></html>
