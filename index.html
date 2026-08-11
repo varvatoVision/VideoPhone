@@ -1,39 +1,1187 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <meta
-    name="theme-color"
-    content="#111827"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>varvatoVision Video Phone</title>
+
+  <link rel="stylesheet" href="style.css">
 
   <!-- Google Identity Services -->
   <script
     src="https://accounts.google.com/gsi/client"
     async
-    defer
-  ></script>
+    defer>
+  </script>
 
   <!-- Socket.IO -->
   <script
     src="/socket.io/socket.io.js"
-    defer
-  ></script>
+    defer>
+  </script>
 
-  <!-- Your application -->
+  <!-- varvatoVision application -->
   <script
-    src="/app.js"
-    defer
-  ></script>
+    src="app.js"
+    defer>
+  </script>
+</head>
 
+<body>
+
+<div class="app-shell">
+
+  <!-- ================================================== -->
+  <!-- SIDEBAR -->
+  <!-- ================================================== -->
+
+  <aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+      <div class="brand-mark">V</div>
+
+      <div>
+        <b>
+          varvato<span>Vision</span>
+        </b>
+
+        <small>
+          Video Phone
+        </small>
+      </div>
+    </div>
+
+
+    <nav>
+
+      <button
+        class="nav active"
+        data-page="home">
+        ⌂
+        <span>Home</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="contacts">
+        ♟
+        <span>Contacts</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="calls">
+        ▣
+        <span>Video Calls</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="messages">
+        ◌
+        <span>Messages</span>
+        <i id="unread">0</i>
+      </button>
+
+      <button
+        class="nav"
+        data-page="history">
+        ◷
+        <span>Call History</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="meetings">
+        ▦
+        <span>Meetings</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="favorites">
+        ☆
+        <span>Favorites</span>
+      </button>
+
+      <button
+        class="nav"
+        data-page="settings">
+        ⚙
+        <span>Settings</span>
+      </button>
+
+    </nav>
+
+
+    <!-- Account -->
+
+    <div class="account">
+
+      <div
+        class="avatar"
+        id="avatar">
+        ?
+      </div>
+
+      <div>
+
+        <b id="name">
+          Guest
+        </b>
+
+        <small id="email">
+          Sign in with Google
+        </small>
+
+        <small class="online">
+          ● Online
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- Premium -->
+
+    <div class="upgrade">
+
+      <b>
+        ◆ Premium
+      </b>
+
+      <small>
+        HD calls, group calling and more.
+      </small>
+
+    </div>
+
+  </aside>
+
+
+  <!-- ================================================== -->
+  <!-- MAIN -->
+  <!-- ================================================== -->
+
+  <main class="main">
+
+    <header class="topbar">
+
+      <button
+        id="menuBtn"
+        aria-label="Open menu">
+        ☰
+      </button>
+
+      <h2 id="title">
+        Home
+      </h2>
+
+
+      <div class="top-right">
+
+        <!-- Google Sign-In renders here -->
+
+        <div id="googleButton"></div>
+
+        <button
+          id="signout"
+          class="ghost hidden">
+          Sign out
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- ================================================== -->
+    <!-- HOME -->
+    <!-- ================================================== -->
+
+    <section
+      class="page active"
+      id="home">
+
+      <div class="hero">
+
+        <div>
+
+          <small class="eyebrow">
+            WELCOME TO
+          </small>
+
+          <h1>
+            varvato<span>Vision</span>
+            <br>
+            Video Phone
+          </h1>
+
+          <p>
+            High quality video calls, clear
+            conversations and secure connections.
+          </p>
+
+          <button
+            class="primary"
+            id="start">
+            ▣ Start Video Call
+          </button>
+
+          <button
+            class="outline"
+            data-go="contacts">
+            ♟ Add Contact
+          </button>
+
+        </div>
+
+
+        <div class="phone">
+
+          <div class="phone-inner">
+
+            <div class="brand-mark">
+              V
+            </div>
+
+            <b>
+              varvato<span>Vision</span>
+            </b>
+
+            <small>
+              Video Phone
+            </small>
+
+            <div class="phone-btns">
+
+              <i>
+                ☎
+              </i>
+
+              <i>
+                ×
+              </i>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Features -->
+
+      <div class="features">
+
+        <article>
+
+          <strong class="tile purple">
+            ▣
+          </strong>
+
+          <h3>
+            Video Calls
+          </h3>
+
+          <p>
+            Make high quality video calls
+            with anyone, anywhere.
+          </p>
+
+        </article>
+
+
+        <article>
+
+          <strong class="tile green">
+            ◌
+          </strong>
+
+          <h3>
+            Messages
+          </h3>
+
+          <p>
+            Send instant messages and
+            share your moments.
+          </p>
+
+        </article>
+
+
+        <article>
+
+          <strong class="tile orange">
+            ♟
+          </strong>
+
+          <h3>
+            Group Calls
+          </h3>
+
+          <p>
+            Connect with friends or teams
+            in one click.
+          </p>
+
+        </article>
+
+
+        <article>
+
+          <strong class="tile blue">
+            ▣
+          </strong>
+
+          <h3>
+            Screen Share
+          </h3>
+
+          <p>
+            Share your screen for
+            collaboration.
+          </p>
+
+        </article>
+
+      </div>
+
+
+      <!-- Recent / Contacts -->
+
+      <div class="columns">
+
+        <article class="panel">
+
+          <div class="panel-head">
+
+            <h2>
+              Recent Calls
+            </h2>
+
+            <a data-go="history">
+              View All
+            </a>
+
+          </div>
+
+          <div id="recentCalls">
+
+            <div class="empty">
+              No recent calls.
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="panel">
+
+          <div class="panel-head">
+
+            <h2>
+              Contacts
+            </h2>
+
+            <a data-go="contacts">
+              View All
+            </a>
+
+          </div>
+
+          <div id="favoriteList">
+
+            <div class="empty">
+              Sign in to see contacts.
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- Security -->
+
+      <div class="security">
+
+        <strong>
+          ▣
+        </strong>
+
+        <div>
+
+          <h3>
+            Secure. Private. Reliable.
+          </h3>
+
+          <p>
+            Account authentication, private sessions
+            and browser-based encrypted media transport.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- CONTACTS -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="contacts">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Contacts
+          </h1>
+
+          <p>
+            Manage your varvatoVision contacts.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel">
+
+        <h2>
+          Add Contact
+        </h2>
+
+        <form id="addContact">
+
+          <input
+            id="contactEmail"
+            type="email"
+            placeholder="Google account email"
+            autocomplete="email"
+            required>
+
+          <button
+            class="primary"
+            type="submit">
+            Add Contact
+          </button>
+
+        </form>
+
+        <div id="contactNotice"></div>
+
+      </article>
+
+
+      <article class="panel">
+
+        <div class="panel-head">
+
+          <h2>
+            Your Contacts
+          </h2>
+
+        </div>
+
+        <div id="contactsList">
+
+          <div class="empty">
+            Sign in to manage contacts.
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- VIDEO CALLS -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="calls">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Video Calls
+          </h1>
+
+          <p>
+            Start a secure browser-based video call.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel call-start-panel">
+
+        <div class="tile purple">
+          ▣
+        </div>
+
+        <h2>
+          Ready to call?
+        </h2>
+
+        <p>
+          Your camera and microphone will be requested
+          when you start a call.
+        </p>
+
+        <button
+          class="primary"
+          id="start2">
+          ▣ Start Video Call
+        </button>
+
+      </article>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- MESSAGES -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="messages">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Messages
+          </h1>
+
+          <p>
+            Chat with your contacts.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="message-layout">
+
+        <article class="panel">
+
+          <h2>
+            Contacts
+          </h2>
+
+          <div id="messageContacts">
+
+            <div class="empty">
+              Sign in first.
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="panel chat-panel">
+
+          <div
+            id="chatHead"
+            class="chat-head">
+            Select a contact
+          </div>
+
+          <div
+            id="chatMessages"
+            class="chat-messages">
+
+            <div class="empty">
+              Select a contact to begin.
+            </div>
+
+          </div>
+
+
+          <form id="sendMessage">
+
+            <input
+              id="messageBody"
+              type="text"
+              placeholder="Type a message..."
+              autocomplete="off"
+              required>
+
+            <button
+              class="primary"
+              type="submit">
+              Send
+            </button>
+
+          </form>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- CALL HISTORY -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="history">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Call History
+          </h1>
+
+          <p>
+            Your recent video calls.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel">
+
+        <div id="historyList">
+
+          <div class="empty">
+            Sign in to see call history.
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- MEETINGS -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="meetings">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Meetings
+          </h1>
+
+          <p>
+            Group meetings are coming to
+            varvatoVision.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel empty-panel">
+
+        <div class="tile blue">
+          ▦
+        </div>
+
+        <h2>
+          Meetings
+        </h2>
+
+        <p>
+          Group meetings and conference calling
+          can be added here.
+        </p>
+
+      </article>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- FAVORITES -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="favorites">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Favorites
+          </h1>
+
+          <p>
+            Your favorite contacts.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel">
+
+        <div id="favoritesList">
+
+          <div class="empty">
+            No favorite contacts.
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- SETTINGS -->
+    <!-- ================================================== -->
+
+    <section
+      class="page"
+      id="settings">
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Settings
+          </h1>
+
+          <p>
+            Manage your varvatoVision account.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <article class="panel">
+
+        <h2>
+          Account
+        </h2>
+
+        <div id="settingsAccount">
+
+          Not signed in.
+
+        </div>
+
+      </article>
+
+
+      <article class="panel">
+
+        <h2>
+          Privacy
+        </h2>
+
+        <p>
+          varvatoVision uses browser sessions and
+          authenticated accounts to protect access
+          to your application.
+        </p>
+
+      </article>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- VIDEO CALL MODAL -->
+<!-- ====================================================== -->
+
+<div
+  id="callModal"
+  class="modal hidden">
+
+  <div class="call-window">
+
+    <div class="call-header">
+
+      <div>
+
+        <b id="callTitle">
+          varvatoVision Call
+        </b>
+
+        <small id="callStatus">
+          Connecting...
+        </small>
+
+      </div>
+
+      <button
+        id="close"
+        class="ghost">
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="video-area">
+
+      <video
+        id="remote"
+        autoplay
+        playsinline>
+      </video>
+
+
+      <video
+        id="local"
+        autoplay
+        muted
+        playsinline>
+      </video>
+
+
+      <div
+        id="roomCode"
+        class="room-code">
+      </div>
+
+    </div>
+
+
+    <div class="call-controls">
+
+      <button
+        id="mute"
+        title="Mute microphone">
+        🎤
+      </button>
+
+      <button
+        id="camera"
+        title="Toggle camera">
+        ▣
+      </button>
+
+      <button
+        id="screen"
+        title="Share screen">
+        ▣
+      </button>
+
+      <button
+        id="copy"
+        title="Copy call link">
+        🔗
+      </button>
+
+      <button
+        id="end"
+        class="end-call"
+        title="End call">
+        ☎
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- SMALL LOCAL FALLBACK STYLES -->
+<!-- ====================================================== -->
+
+<style>
+
+.hidden {
+  display: none !important;
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  opacity: .7;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.row > div:nth-child(2) {
+  flex: 1;
+}
+
+.row small {
+  display: block;
+  opacity: .7;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.message-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+}
+
+.chat-panel {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-head {
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0,0,0,.1);
+  font-weight: 700;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.message-contact {
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.message-contact:hover,
+.message-contact.active {
+  background: rgba(100,100,100,.1);
+}
+
+.message-contact small {
+  display: block;
+  opacity: .65;
+}
+
+.bubble {
+  width: fit-content;
+  max-width: 75%;
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 14px;
+  background: rgba(100,100,100,.12);
+}
+
+.bubble.mine {
+  margin-left: auto;
+}
+
+.bubble small {
+  display: block;
+  font-size: .7em;
+  opacity: .6;
+  margin-top: 4px;
+}
+
+.security {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(100,100,100,.07);
+}
+
+.security h3,
+.security p {
+  margin: 0;
+}
+
+.security p {
+  margin-top: 5px;
+  opacity: .7;
+}
+
+.call-start-panel {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.empty-panel {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.call-window {
+  width: min(1000px, 94vw);
+  background: #111;
+  color: white;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.call-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.call-header small {
+  display: block;
+  opacity: .65;
+}
+
+.video-area {
+  position: relative;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.video-area #remote {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-area #local {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 220px;
+  max-width: 30%;
+  border-radius: 12px;
+  border: 2px solid white;
+  background: #222;
+}
+
+.room-code {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.6);
+  font-size: 12px;
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px;
+}
+
+.call-controls button {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.call-controls .end-call {
+  background: #d33;
+  color: white;
+}
+
+@media (max-width: 800px) {
+
+  .message-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .video-area #local {
+    width: 140px;
+  }
+
+}
+
+</style>
+
+</body>
+</html>
+```
+  color: white;
+}
+
+@media (max-width: 800px) {
+
+  .message-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .video-area #local {
+    width: 140px;
+  }
+
+}
+
+</style>
+
+</body>
+</html>
+```
   <style>
     * {
       box-sizing: border-box;
