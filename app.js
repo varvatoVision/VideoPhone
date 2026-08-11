@@ -1,40 +1,15 @@
-```javascript
-let cfg = null;
-let user = null;
-let socket = null;
-
-let localStream = null;
-let peer = null;
-
-let roomId = null;
-let callId = null;
-
-let activeContact = null;
-let contacts = [];
-
-
-// ========================================
-// Helpers
-// ========================================
-
-const $ = id => document.getElementById(id);
-
-
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[character]));
-}
-
-
-function initials(name) {
-  return String(name || "?")
-    .trim()
-    .split(/\s+/)
+async function signOut() {
+  try {
+    await api(
+      "/api/auth/logout",
+      {
+        method: "POST"
+      }
+    );
+  } finally {
+    location.reload();
+  }
+}    .split(/\s+/)
     .map(part => part[0])
     .join("")
     .slice(0, 2)
