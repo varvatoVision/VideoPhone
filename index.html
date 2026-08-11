@@ -1,39 +1,1557 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>varvatoVision Video Phone</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="/socket.io/socket.io.js" defer></script>
-<script src="app.js" defer></script>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="theme-color"
+    content="#111827"
+  >
+
+  <title>varvatoVision Video Phone</title>
+
+  <!-- Google Identity Services -->
+  <script
+    src="https://accounts.google.com/gsi/client"
+    async
+    defer
+  ></script>
+
+  <!-- Socket.IO -->
+  <script
+    src="/socket.io/socket.io.js"
+    defer
+  ></script>
+
+  <!-- varvatoVision application -->
+  <script
+    src="/app.js"
+    defer
+  ></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      background: #f5f7fb;
+      color: #172033;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ========================================
+       Layout
+       ======================================== */
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #111827;
+      color: white;
+      padding: 22px 16px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(
+        135deg,
+        #6d5dfc,
+        #31b7ff
+      );
+      color: white;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .brand b {
+      font-size: 17px;
+      display: block;
+    }
+
+    .brand b span,
+    h1 span,
+    .phone b span {
+      color: #6d5dfc;
+    }
+
+    .brand small {
+      opacity: .6;
+      display: block;
+      margin-top: 2px;
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .nav {
+      border: 0;
+      background: transparent;
+      color: #cbd5e1;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      transition: .15s;
+    }
+
+    .nav:hover,
+    .nav.active {
+      background: #252e41;
+      color: white;
+    }
+
+    .nav i {
+      margin-left: auto;
+      font-style: normal;
+      background: #ef4444;
+      color: white;
+      border-radius: 20px;
+      padding: 1px 7px;
+      font-size: 11px;
+    }
+
+    .account {
+      margin-top: auto;
+      padding: 14px 6px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border-top: 1px solid #293244;
+      padding-top: 18px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 50%;
+      background: #6d5dfc;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .account b,
+    .account small {
+      display: block;
+    }
+
+    .account small {
+      opacity: .65;
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .online {
+      color: #4ade80;
+    }
+
+    .upgrade {
+      margin-top: 16px;
+      padding: 13px;
+      border-radius: 12px;
+      background: linear-gradient(
+        135deg,
+        #30285f,
+        #18344c
+      );
+    }
+
+    .upgrade b,
+    .upgrade small {
+      display: block;
+    }
+
+    .upgrade small {
+      opacity: .7;
+      margin-top: 5px;
+    }
+
+    /* ========================================
+       Main
+       ======================================== */
+
+    .main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 70px;
+      padding: 0 28px;
+      background: white;
+      border-bottom: 1px solid #e6e9ef;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    #menuBtn {
+      display: none;
+      border: 0;
+      background: transparent;
+      font-size: 23px;
+    }
+
+    .top-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost {
+      border: 1px solid #d9deea;
+      background: white;
+      padding: 9px 14px;
+      border-radius: 9px;
+    }
+
+    /* ========================================
+       Pages
+       ======================================== */
+
+    .page {
+      display: none;
+      padding: 30px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 30px;
+      align-items: center;
+      padding: 35px;
+      border-radius: 22px;
+      background: white;
+      box-shadow: 0 10px 35px rgba(0,0,0,.05);
+    }
+
+    .eyebrow {
+      font-weight: 700;
+      color: #6d5dfc;
+      letter-spacing: 2px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 65px);
+      line-height: .98;
+      margin: 12px 0;
+    }
+
+    .hero p {
+      color: #697386;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .primary,
+    .outline {
+      border-radius: 10px;
+      padding: 12px 17px;
+      margin: 5px 5px 5px 0;
+      font-weight: 700;
+    }
+
+    .primary {
+      background: #6d5dfc;
+      color: white;
+      border: 1px solid #6d5dfc;
+    }
+
+    .outline {
+      background: white;
+      color: #374151;
+      border: 1px solid #d9deea;
+    }
+
+    .phone {
+      width: 230px;
+      height: 430px;
+      margin: auto;
+      padding: 10px;
+      border-radius: 34px;
+      background: #111827;
+      box-shadow: 0 25px 50px rgba(0,0,0,.2);
+    }
+
+    .phone-inner {
+      height: 100%;
+      border-radius: 26px;
+      background:
+        linear-gradient(
+          145deg,
+          #1f2937,
+          #101827
+        );
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .phone-inner .brand-mark {
+      width: 60px;
+      height: 60px;
+    }
+
+    .phone-btns {
+      display: flex;
+      gap: 14px;
+      margin-top: 40px;
+    }
+
+    .phone-btns i {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #293244;
+      font-style: normal;
+    }
+
+    /* ========================================
+       Feature cards
+       ======================================== */
+
+    .features {
+      display: grid;
+      grid-template-columns:
+        repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .features article,
+    .panel {
+      background: white;
+      border: 1px solid #e8ebf1;
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .tile {
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 10px;
+      background: #eee;
+    }
+
+    .purple {
+      background: #eeeaff;
+    }
+
+    .green {
+      background: #e8faf0;
+    }
+
+    .orange {
+      background: #fff1df;
+    }
+
+    .blue {
+      background: #e7f3ff;
+    }
+
+    .features h3 {
+      margin: 5px 0;
+    }
+
+    .features p {
+      color: #747d8e;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ========================================
+       Panels
+       ======================================== */
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .panel-head a {
+      color: #6d5dfc;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .row {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .row > div:nth-child(2) {
+      flex: 1;
+    }
+
+    .row b,
+    .row small {
+      display: block;
+    }
+
+    .row small {
+      color: #7a8494;
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    .row button {
+      border: 0;
+      background: #eeeaff;
+      color: #6d5dfc;
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+    }
+
+    .empty {
+      color: #7a8494;
+      padding: 20px 0;
+    }
+
+    /* ========================================
+       Contacts
+       ======================================== */
+
+    .form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .form input,
+    .chat-form input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #dce1e9;
+      border-radius: 9px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .form input:focus,
+    .chat-form input:focus {
+      border-color: #6d5dfc;
+    }
+
+    .form button,
+    .chat-form button {
+      border: 0;
+      border-radius: 9px;
+      padding: 0 16px;
+      background: #6d5dfc;
+      color: white;
+      font-weight: 700;
+    }
+
+    #contactNotice {
+      color: #6d5dfc;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    /* ========================================
+       Messages
+       ======================================== */
+
+    .message-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 15px;
+      min-height: 500px;
+    }
+
+    .message-sidebar,
+    .chat {
+      background: white;
+      border: 1px solid #e7eaf0;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .message-sidebar {
+      padding: 10px;
+    }
+
+    .message-contact {
+      padding: 12px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .message-contact:hover,
+    .message-contact.active {
+      background: #f0edff;
+    }
+
+    .message-contact b,
+    .message-contact small {
+      display: block;
+    }
+
+    .message-contact small {
+      color: #7b8492;
+      margin-top: 3px;
+    }
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chatHead {
+      margin: 0;
+      padding: 17px;
+      border-bottom: 1px solid #e7eaf0;
+    }
+
+    #chatMessages {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      min-height: 390px;
+    }
+
+    .bubble {
+      max-width: 70%;
+      width: fit-content;
+      background: #eef1f6;
+      padding: 10px 13px;
+      border-radius: 13px;
+      margin-bottom: 8px;
+    }
+
+    .bubble.mine {
+      margin-left: auto;
+      background: #6d5dfc;
+      color: white;
+    }
+
+    .bubble small {
+      display: block;
+      opacity: .6;
+      font-size: 10px;
+      margin-top: 5px;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid #e7eaf0;
+    }
+
+    /* ========================================
+       Call modal
+       ======================================== */
+
+    #callModal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(3, 7, 18, .94);
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #callModal.hidden {
+      display: none;
+    }
+
+    .call-header {
+      height: 70px;
+      padding: 0 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .call-header h2 {
+      margin: 0;
+    }
+
+    .call-header small {
+      opacity: .65;
+    }
+
+    .call-header .call-close {
+      margin-left: auto;
+    }
+
+    .call-videos {
+      flex: 1;
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    #remote {
+      width: min(100%, 1100px);
+      max-height: 75vh;
+      background: #05070c;
+      border-radius: 18px;
+      object-fit: cover;
+    }
+
+    #local {
+      position: absolute;
+      right: 35px;
+      bottom: 35px;
+      width: 230px;
+      height: 150px;
+      background: #111827;
+      border-radius: 14px;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    #waiting {
+      position: absolute;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #waiting h3 {
+      margin-bottom: 6px;
+    }
+
+    .call-controls {
+      min-height: 85px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 15px;
+    }
+
+    .call-controls button {
+      width: 50px;
+      height: 50px;
+      border: 0;
+      border-radius: 50%;
+      background: #293244;
+      color: white;
+      font-size: 18px;
+    }
+
+    .call-controls .danger {
+      background: #ef4444;
+    }
+
+    /* ========================================
+       Responsive
+       ======================================== */
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 900;
+        transform: translateX(-100%);
+        transition: .2s;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      #menuBtn {
+        display: block;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        display: none;
+      }
+
+      .features {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .page {
+        padding: 15px;
+      }
+
+      .topbar {
+        padding: 0 15px;
+      }
+
+      .hero {
+        padding: 25px 20px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .message-layout {
+        grid-template-columns: 1fr;
+      }
+
+      #local {
+        width: 130px;
+        height: 90px;
+        right: 15px;
+        bottom: 15px;
+      }
+
+      .form {
+        flex-direction: column;
+      }
+
+      .form button {
+        height: 42px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="app-shell">
-<aside class="sidebar" id="sidebar">
-  <div class="brand"><div class="brand-mark">V</div><div><b>varvato<span>Vision</span></b><small>Video Phone</small></div></div>
-  <nav>
-    <button class="nav active" data-page="home">⌂ <span>Home</span></button>
-    <button class="nav" data-page="contacts">♟ <span>Contacts</span></button>
-    <button class="nav" data-page="calls">▣ <span>Video Calls</span></button>
-    <button class="nav" data-page="messages">◌ <span>Messages</span><i id="unread">0</i></button>
-    <button class="nav" data-page="history">◷ <span>Call History</span></button>
-    <button class="nav" data-page="meetings">▦ <span>Meetings</span></button>
-    <button class="nav" data-page="favorites">☆ <span>Favorites</span></button>
-    <button class="nav" data-page="settings">⚙ <span>Settings</span></button>
-  </nav>
-  <div class="account"><div class="avatar" id="avatar">?</div><div><b id="name">Guest</b><small id="email">Sign in with Google</small><small class="online">● Online</small></div></div>
-  <div class="upgrade"><b>◆ Premium</b><small>HD calls, group calling and more.</small></div>
-</aside>
 
-<main class="main">
-<header class="topbar"><button id="menuBtn">☰</button><h2 id="title">Home</h2><div class="top-right"><div id="googleButton"></div><button id="signout" class="ghost hidden">Sign out</button></div></header>
+  <div class="app-shell">
 
-<section class="page active" id="home">
-  <div class="hero"><div><small class="eyebrow">WELCOME TO</small><h1>varvato<span>Vision</span><br>Video Phone</h1><p>High quality video calls, clear conversations and secure connections.</p><button class="primary" id="start">▣ Start Video Call</button> <button class="outline" data-go="contacts">♟ Add Contact</button></div><div class="phone"><div class="phone-inner"><div class="brand-mark">V</div><b>varvato<span>Vision</span></b><small>Video Phone</small><div class="phone-btns"><i>☎</i><i>×</i></div></div></div></div>
-  <div class="features"><article><strong class="tile purple">▣</strong><h3>Video Calls</h3><p>Make high quality video calls with anyone, anywhere.</p></article><article><strong class="tile green">◌</strong><h3>Messages</h3><p>Send instant messages and share your moments.</p></article><article><strong class="tile orange">♟</strong><h3>Group Calls</h3><p>Connect with friends or teams in one click.</p></article><article><strong class="tile blue">▣</strong><h3>Screen Share</h3><p>Share your screen for collaboration.</p></article></div>
-  <div class="columns"><article class="panel"><div class="panel-head"><h2>Recent Calls</h2><a data-go="history">View All</a></div><div id="recentCalls"></div></article><article class="panel"><div class="panel-head"><h2>Contacts</h2><a data-go="contacts">View All</a></div><div id="favoriteList"></div></article></div>
+    <!-- ======================================
+         SIDEBAR
+         ====================================== -->
+
+    <aside
+      class="sidebar"
+      id="sidebar"
+    >
+
+      <div class="brand">
+        <div class="brand-mark">V</div>
+
+        <div>
+          <b>
+            varvato<span>Vision</span>
+          </b>
+
+          <small>
+            Video Phone
+          </small>
+        </div>
+      </div>
+
+      <nav>
+
+        <button
+          class="nav active"
+          data-page="home"
+        >
+          ⌂
+          <span>Home</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="contacts"
+        >
+          ♟
+          <span>Contacts</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="calls"
+        >
+          ▣
+          <span>Video Calls</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="messages"
+        >
+          ◌
+          <span>Messages</span>
+          <i id="unread">0</i>
+        </button>
+
+        <button
+          class="nav"
+          data-page="history"
+        >
+          ◷
+          <span>Call History</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="meetings"
+        >
+          ▦
+          <span>Meetings</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="favorites"
+        >
+          ☆
+          <span>Favorites</span>
+        </button>
+
+        <button
+          class="nav"
+          data-page="settings"
+        >
+          ⚙
+          <span>Settings</span>
+        </button>
+
+      </nav>
+
+      <!-- Account -->
+
+      <div class="account">
+
+        <div
+          class="avatar"
+          id="avatar"
+        >
+          ?
+        </div>
+
+        <div>
+          <b id="name">
+            Guest
+          </b>
+
+          <small id="email">
+            Sign in with Google
+          </small>
+
+          <small class="online">
+            ● Online
+          </small>
+        </div>
+
+      </div>
+
+      <div class="upgrade">
+        <b>◆ Premium</b>
+        <small>
+          HD calls, group calling and more.
+        </small>
+      </div>
+
+    </aside>
+
+
+    <!-- ======================================
+         MAIN
+         ====================================== -->
+
+    <main class="main">
+
+      <header class="topbar">
+
+        <button id="menuBtn">
+          ☰
+        </button>
+
+        <h2 id="title">
+          Home
+        </h2>
+
+        <div class="top-right">
+
+          <!-- Google Identity Services renders
+               the actual Sign in with Google
+               button here. -->
+
+          <div id="googleButton"></div>
+
+          <button
+            id="signout"
+            class="ghost hidden"
+          >
+            Sign out
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- ====================================
+           HOME
+           ==================================== -->
+
+      <section
+        class="page active"
+        id="home"
+      >
+
+        <div class="hero">
+
+          <div>
+
+            <small class="eyebrow">
+              WELCOME TO
+            </small>
+
+            <h1>
+              varvato<span>Vision</span>
+              <br>
+              Video Phone
+            </h1>
+
+            <p>
+              High quality video calls,
+              clear conversations and
+              secure connections.
+            </p>
+
+            <button
+              class="primary"
+              id="start"
+            >
+              ▣ Start Video Call
+            </button>
+
+            <button
+              class="outline"
+              data-go="contacts"
+            >
+              ♟ Add Contact
+            </button>
+
+          </div>
+
+          <div class="phone">
+
+            <div class="phone-inner">
+
+              <div class="brand-mark">
+                V
+              </div>
+
+              <b>
+                varvato<span>Vision</span>
+              </b>
+
+              <small>
+                Video Phone
+              </small>
+
+              <div class="phone-btns">
+                <i>☎</i>
+                <i>×</i>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Features -->
+
+        <div class="features">
+
+          <article>
+            <strong class="tile purple">
+              ▣
+            </strong>
+
+            <h3>
+              Video Calls
+            </h3>
+
+            <p>
+              Make high quality video
+              calls with anyone,
+              anywhere.
+            </p>
+          </article>
+
+          <article>
+            <strong class="tile green">
+              ◌
+            </strong>
+
+            <h3>
+              Messages
+            </h3>
+
+            <p>
+              Send instant messages
+              and share your moments.
+            </p>
+          </article>
+
+          <article>
+            <strong class="tile orange">
+              ♟
+            </strong>
+
+            <h3>
+              Group Calls
+            </h3>
+
+            <p>
+              Connect with friends
+              or teams in one click.
+            </p>
+          </article>
+
+          <article>
+            <strong class="tile blue">
+              ▣
+            </strong>
+
+            <h3>
+              Screen Share
+            </h3>
+
+            <p>
+              Share your screen for
+              collaboration.
+            </p>
+          </article>
+
+        </div>
+
+
+        <!-- Recent -->
+
+        <div class="columns">
+
+          <article class="panel">
+
+            <div class="panel-head">
+
+              <h2>
+                Recent Calls
+              </h2>
+
+              <a data-go="history">
+                View All
+              </a>
+
+            </div>
+
+            <div id="recentCalls">
+              <div class="empty">
+                No calls yet.
+              </div>
+            </div>
+
+          </article>
+
+
+          <article class="panel">
+
+            <div class="panel-head">
+
+              <h2>
+                Contacts
+              </h2>
+
+              <a data-go="contacts">
+                View All
+              </a>
+
+            </div>
+
+            <div id="favoriteList">
+              <div class="empty">
+                Sign in to see contacts.
+              </div>
+            </div>
+
+          </article>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           CONTACTS
+           ==================================== -->
+
+      <section
+        class="page"
+        id="contacts"
+      >
+
+        <div class="panel">
+
+          <div class="panel-head">
+            <h2>
+              Contacts
+            </h2>
+          </div>
+
+          <form
+            class="form"
+            id="addContact"
+          >
+
+            <input
+              id="contactEmail"
+              type="email"
+              placeholder="Google email address"
+              autocomplete="email"
+              required
+            >
+
+            <button type="submit">
+              Add Contact
+            </button>
+
+          </form>
+
+          <div id="contactNotice"></div>
+
+          <div id="contactsList">
+            <div class="empty">
+              Sign in with Google to manage
+              your contacts.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           VIDEO CALLS
+           ==================================== -->
+
+      <section
+        class="page"
+        id="calls"
+      >
+
+        <div class="panel">
+
+          <div class="panel-head">
+            <h2>
+              Video Calls
+            </h2>
+          </div>
+
+          <p>
+            Start a video call with one of
+            your contacts.
+          </p>
+
+          <button
+            class="primary"
+            id="start2"
+          >
+            ▣ Start Video Call
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           MESSAGES
+           ==================================== -->
+
+      <section
+        class="page"
+        id="messages"
+      >
+
+        <div class="message-layout">
+
+          <aside class="message-sidebar">
+
+            <h3>
+              Messages
+            </h3>
+
+            <div id="messageContacts">
+              <div class="empty">
+                No contacts yet.
+              </div>
+            </div>
+
+          </aside>
+
+          <section class="chat">
+
+            <h3 id="chatHead">
+              Select a contact
+            </h3>
+
+            <div id="chatMessages">
+              <div class="empty">
+                Select a contact to start
+                messaging.
+              </div>
+            </div>
+
+            <form
+              class="chat-form"
+              id="sendMessage"
+            >
+
+              <input
+                id="messageBody"
+                placeholder="Type a message..."
+                autocomplete="off"
+              >
+
+              <button type="submit">
+                Send
+              </button>
+
+            </form>
+
+          </section>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           HISTORY
+           ==================================== -->
+
+      <section
+        class="page"
+        id="history"
+      >
+
+        <div class="panel">
+
+          <div class="panel-head">
+            <h2>
+              Call History
+            </h2>
+          </div>
+
+          <div id="historyList">
+            <div class="empty">
+              No call history yet.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           MEETINGS
+           ==================================== -->
+
+      <section
+        class="page"
+        id="meetings"
+      >
+
+        <div class="panel">
+
+          <h2>
+            Meetings
+          </h2>
+
+          <p>
+            Meeting rooms are coming to
+            varvatoVision.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           FAVORITES
+           ==================================== -->
+
+      <section
+        class="page"
+        id="favorites"
+      >
+
+        <div class="panel">
+
+          <h2>
+            Favorites
+          </h2>
+
+          <div id="favoritesList">
+            <div class="empty">
+              Your favorite contacts will
+              appear here.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ====================================
+           SETTINGS
+           ==================================== -->
+
+      <section
+        class="page"
+        id="settings"
+      >
+
+        <div class="panel">
+
+          <h2>
+            Settings
+          </h2>
+
+          <p>
+            varvatoVision settings.
+          </p>
+
+          <hr>
+
+          <p>
+            <b>Account</b>
+          </p>
+
+          <p id="settingsAccount">
+            Sign in with Google to manage
+            your account.
+          </p>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- ========================================
+       VIDEO CALL MODAL
+       ======================================== -->
+
+  <div
+    id="callModal"
+    class="hidden"
+  >
+
+    <header class="call-header">
+
+      <div>
+        <h2 id="callTitle">
+          VarvatoVision Call
+        </h2>
+
+        <small>
+          Room:
+          <span id="roomCode"></span>
+        </small>
+      </div>
+
+      <div>
+        <span id="callStatus">
+          Starting…
+        </span>
+      </div>
+
+      <button
+        id="close"
+        class="call-close ghost"
+      >
+        Close
+      </button>
+
+    </header>
+
+
+    <div class="call-videos">
+
+      <video
+        id="remote"
+        autoplay
+        playsinline
+      ></video>
+
+      <video
+        id="local"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
+      <div id="waiting">
+
+        <h3>
+          Waiting for caller
+        </h3>
+
+        <p>
+          Share the call link with
+          someone to join.
+        </p>
+
+        <button
+          class="outline"
+          id="copy"
+        >
+          Copy call link
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="call-controls">
+
+      <button id="mute">
+        🎤
+      </button>
+
+      <button id="camera">
+        ▣
+      </button>
+
+      <button id="screen">
+        ▧
+      </button>
+
+      <button
+        id="end"
+        class="danger"
+      >
+        ☎
+      </button>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+```
   <div class="secure"><b>▣</b><div><h2>Secure. Private. Reliable.</h2><p>Account authentication, private sessions and browser-based encrypted media transport.</p></div></div>
 </section>
 
