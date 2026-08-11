@@ -1,5 +1,17 @@
 ```javascript
-let cfg, user, socket, localStream, peer, roomId, callId, activeContact, contacts = [];
+let cfg = null;
+let user = null;
+let socket = null;
+
+let localStream = null;
+let peer = null;
+
+let roomId = null;
+let callId = null;
+
+let activeContact = null;
+let contacts = [];
+
 
 // ========================================
 // Helpers
@@ -7,46 +19,89 @@ let cfg, user, socket, localStream, peer, roomId, callId, activeContact, contact
 
 const $ = id => document.getElementById(id);
 
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#39;"
-  }[c]));
+  }[character]));
+}
+
+
+function initials(name) {
+  return String(name || "?")
+    .trim()
+    .split(/\s+/)
+    .map(part => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 
 // ========================================
-// Application startup
+// Startup
 // ========================================
 
 document.addEventListener("DOMContentLoaded", async () => {
+
   bindNavigation();
 
-  $("menuBtn").onclick = () =>
-    $("sidebar").classList.toggle("open");
+  const menuButton = $("menuBtn");
 
-  $("start").onclick = () => startCall();
-  $("start2").onclick = () => startCall();
+  if (menuButton) {
+    menuButton.onclick = () => {
+      $("sidebar")?.classList.toggle("open");
+    };
+  }
 
-  $("close").onclick = endCall;
-  $("end").onclick = endCall;
 
-  $("mute").onclick = toggleMute;
-  $("camera").onclick = toggleCamera;
-  $("screen").onclick = shareScreen;
+  $("start")?.addEventListener("click", startCall);
 
-  $("copy").onclick = copyLink;
+  $("start2")?.addEventListener("click", startCall);
 
-  $("addContact").onsubmit = addContact;
-  $("sendMessage").onsubmit = sendMessage;
+  $("startCall")?.addEventListener("click", startCall);
 
-  $("signout").onclick = signOut;
+
+  $("close")?.addEventListener("click", endCall);
+
+  $("end")?.addEventListener("click", endCall);
+
+  $("mute")?.addEventListener("click", toggleMute);
+
+  $("camera")?.addEventListener("click", toggleCamera);
+
+  $("screen")?.addEventListener("click", shareScreen);
+
+  $("copy")?.addEventListener("click", copyLink);
+
+
+  $("addContact")?.addEventListener(
+    "submit",
+    addContact
+  );
+
+
+  $("sendMessage")?.addEventListener(
+    "submit",
+    sendMessage
+  );
+
+
+  $("signout")?.addEventListener(
+    "click",
+    signOut
+  );
+
 
   await loadConfig();
+
   await loadMe();
+
+  connectSocket();
 });
 
 
@@ -55,57 +110,122 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ========================================
 
 function bindNavigation() {
+
   document.querySelectorAll(".nav").forEach(button => {
-    button.onclick = () => showPage(button.dataset.page);
+
+    button.addEventListener("click", () => {
+      showPage(button.dataset.page);
+    });
+
   });
 
+
   document.querySelectorAll("[data-go]").forEach(button => {
-    button.onclick = () => showPage(button.dataset.go);
+
+    button.addEventListener("click", () => {
+      showPage(button.dataset.go);
+    });
+
   });
 }
 
+
 function showPage(name) {
-  document.querySelectorAll(".page")
-    .forEach(page => page.classList.remove("active"));
 
-  $(name)?.classList.add("active");
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
 
-  document.querySelectorAll(".nav")
-    .forEach(button =>
-      button.classList.toggle(
-        "active",
-        button.dataset.page === name
-      )
+
+  const page = $(name);
+
+  if (page) {
+    page.classList.add("active");
+  }
+
+
+  document.querySelectorAll(".nav").forEach(button => {
+
+    button.classList.toggle(
+      "active",
+      button.dataset.page === name
     );
 
-  $("title").textContent =
-    name === "calls"
-      ? "Video Calls"
-      : name[0].toUpperCase() + name.slice(1);
+  });
 
-  $("sidebar").classList.remove("open");
 
-  if (name === "contacts") loadContacts();
-  if (name === "messages") loadMessageContacts();
-  if (name === "history") loadHistory();
+  if ($("title")) {
+
+    const titles = {
+      home: "Home",
+      contacts: "Contacts",
+      calls: "Video Calls",
+      messages: "Messages",
+      history: "Call History",
+      meetings: "Meetings",
+      favorites: "Favorites",
+      settings: "Settings"
+    };
+
+    $("title").textContent =
+      titles[name] || "varvatoVision";
+  }
+
+
+  $("sidebar")?.classList.remove("open");
+
+
+  if (name === "contacts") {
+    loadContacts();
+  }
+
+  if (name === "messages") {
+    loadMessageContacts();
+  }
+
+  if (name === "history") {
+    loadHistory();
+  }
+
+  if (name === "favorites") {
+    loadFavorites();
+  }
+
+  if (name === "settings") {
+    updateSettings();
+  }
 }
 
 
 // ========================================
-// API
+// API helper
 // ========================================
 
 async function api(url, options = {}) {
-  const r = await fetch(url, {
+
+  const response = await fetch(url, {
     credentials: "include",
-    ...options
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
   });
 
-  const data = await r.json().catch(() => ({}));
 
-  if (!r.ok) {
-    throw new Error(data.error || "Request failed");
+  const data =
+    await response.json().catch(() => ({}));
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.error ||
+      data.message ||
+      `Request failed (${response.status})`
+    );
   }
+
 
   return data;
 }
@@ -116,40 +236,57 @@ async function api(url, options = {}) {
 // ========================================
 
 async function loadConfig() {
+
   try {
+
     cfg = await api("/api/config");
 
     waitForGoogle();
+
   } catch (error) {
-    console.error("Could not load configuration:", error);
+
+    console.error(
+      "Could not load configuration:",
+      error
+    );
+
   }
 }
 
 
 function waitForGoogle() {
+
   if (
     window.google &&
     window.google.accounts &&
     window.google.accounts.id
   ) {
+
     initGoogle();
+
     return;
   }
+
 
   setTimeout(waitForGoogle, 250);
 }
 
 
 function initGoogle() {
+
   if (!cfg?.googleClientId) {
+
     console.error(
-      "Google Sign-In is unavailable: googleClientId was not provided."
+      "Google Sign-In is unavailable: " +
+      "googleClientId was not provided by the server."
     );
 
     return;
   }
 
+
   if (!window.google?.accounts?.id) {
+
     console.error(
       "Google Identity Services has not loaded."
     );
@@ -157,13 +294,1599 @@ function initGoogle() {
     return;
   }
 
+
   google.accounts.id.initialize({
+
     client_id: cfg.googleClientId,
 
     callback: googleCredential,
 
     auto_select: false,
 
+    cancel_on_tap_outside: true
+
+  });
+
+
+  const button = $("googleButton");
+
+  if (!button) {
+    return;
+  }
+
+
+  button.innerHTML = "";
+
+
+  google.accounts.id.renderButton(
+    button,
+    {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "rectangular",
+      logo_alignment: "left"
+    }
+  );
+}
+
+
+// ========================================
+// Google credential
+// ========================================
+
+async function googleCredential(response) {
+
+  if (!response?.credential) {
+
+    console.error(
+      "Google did not return a credential."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const result = await api(
+      "/api/auth/google",
+      {
+        method: "POST",
+
+        body: JSON.stringify({
+          credential: response.credential
+        })
+      }
+    );
+
+
+    user =
+      result.user ||
+      result;
+
+
+    updateUserUI();
+
+    await loadContacts();
+
+    await loadHistory();
+
+    await loadFavorites();
+
+    connectSocket();
+
+
+  } catch (error) {
+
+    console.error(
+      "Google sign-in failed:",
+      error
+    );
+
+    alert(
+      "Google sign-in failed: " +
+      error.message
+    );
+  }
+}
+
+
+// ========================================
+// Current user
+// ========================================
+
+async function loadMe() {
+
+  try {
+
+    const result = await api("/api/me");
+
+    user = result.user || result;
+
+    updateUserUI();
+
+
+  } catch (error) {
+
+    user = null;
+
+    updateUserUI();
+
+    console.log(
+      "No signed-in user."
+    );
+  }
+}
+
+
+function updateUserUI() {
+
+  const name = $("name");
+  const email = $("email");
+  const avatar = $("avatar");
+  const signout = $("signout");
+  const settings = $("settingsAccount");
+
+
+  if (!user) {
+
+    if (name) {
+      name.textContent = "Guest";
+    }
+
+    if (email) {
+      email.textContent = "Sign in with Google";
+    }
+
+    if (avatar) {
+      avatar.innerHTML = "?";
+    }
+
+    signout?.classList.add("hidden");
+
+    if (settings) {
+      settings.textContent =
+        "Not signed in.";
+    }
+
+    return;
+  }
+
+
+  const displayName =
+    user.name ||
+    user.given_name ||
+    "Google User";
+
+
+  if (name) {
+    name.textContent = displayName;
+  }
+
+
+  if (email) {
+    email.textContent =
+      user.email || "";
+  }
+
+
+  if (avatar) {
+
+    if (user.picture) {
+
+      avatar.innerHTML =
+        `<img src="${esc(user.picture)}" alt="">`;
+
+    } else {
+
+      avatar.textContent =
+        initials(displayName);
+    }
+  }
+
+
+  signout?.classList.remove("hidden");
+
+
+  if (settings) {
+
+    settings.innerHTML = `
+      <div class="row">
+        <div class="avatar">
+          ${esc(initials(displayName))}
+        </div>
+
+        <div>
+          <b>${esc(displayName)}</b>
+          <small>${esc(user.email || "")}</small>
+        </div>
+      </div>
+    `;
+  }
+}
+
+
+// ========================================
+// Sign out
+// ========================================
+
+async function signOut() {
+
+  try {
+
+    await api(
+      "/api/auth/logout",
+      {
+        method: "POST"
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Sign out request failed:",
+      error
+    );
+  }
+
+
+  user = null;
+
+  contacts = [];
+
+  activeContact = null;
+
+
+  if (window.google?.accounts?.id) {
+
+    google.accounts.id.disableAutoSelect();
+  }
+
+
+  updateUserUI();
+
+  renderContacts([]);
+
+  renderFavorites([]);
+
+  renderHistory([]);
+
+
+  showPage("home");
+}
+
+
+// ========================================
+// Socket.IO
+// ========================================
+
+function connectSocket() {
+
+  if (!user) {
+    return;
+  }
+
+
+  if (socket) {
+
+    if (socket.connected) {
+      return;
+    }
+
+    socket.disconnect();
+  }
+
+
+  if (!window.io) {
+
+    console.warn(
+      "Socket.IO client has not loaded."
+    );
+
+    return;
+  }
+
+
+  socket = io({
+    withCredentials: true
+  });
+
+
+  socket.on("connect", () => {
+
+    console.log(
+      "varvatoVision socket connected:",
+      socket.id
+    );
+
+  });
+
+
+  socket.on("connect_error", error => {
+
+    console.error(
+      "Socket connection error:",
+      error
+    );
+
+  });
+
+
+  socket.on("message", message => {
+
+    handleIncomingMessage(message);
+
+  });
+
+
+  socket.on("incoming-call", data => {
+
+    handleIncomingCall(data);
+
+  });
+
+
+  socket.on("call-ended", () => {
+
+    endCall(false);
+
+  });
+}
+
+
+// ========================================
+// Contacts
+// ========================================
+
+async function loadContacts() {
+
+  if (!user) {
+    return;
+  }
+
+
+  try {
+
+    const result =
+      await api("/api/contacts");
+
+
+    contacts =
+      result.contacts ||
+      result ||
+      [];
+
+
+    renderContacts(contacts);
+
+    renderFavorites(
+      contacts.filter(
+        contact =>
+          contact.favorite ||
+          contact.is_favorite
+      )
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not load contacts:",
+      error
+    );
+
+  }
+}
+
+
+function renderContacts(list) {
+
+  const container = $("contactsList");
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!user) {
+
+    container.innerHTML =
+      `<div class="empty">
+        Sign in to manage contacts.
+      </div>`;
+
+    return;
+  }
+
+
+  if (!list.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No contacts yet.
+      </div>`;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    list.map(contact => {
+
+      const displayName =
+        contact.name ||
+        contact.email ||
+        "Contact";
+
+
+      return `
+        <div class="row">
+
+          <div class="avatar">
+            ${
+              contact.picture
+                ? `<img src="${esc(contact.picture)}" alt="">`
+                : esc(initials(displayName))
+            }
+          </div>
+
+          <div>
+            <b>${esc(displayName)}</b>
+            <small>${esc(contact.email || "")}</small>
+          </div>
+
+          <button
+            data-contact-call="${esc(contact.id || "")}"
+            title="Call"
+          >
+            ☎
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  container
+    .querySelectorAll("[data-contact-call]")
+    .forEach(button => {
+
+      button.onclick = () => {
+
+        const id =
+          button.dataset.contactCall;
+
+        const contact =
+          contacts.find(
+            item =>
+              String(item.id) === String(id)
+          );
+
+        if (contact) {
+          startCall(contact);
+        }
+
+      };
+
+    });
+}
+
+
+async function addContact(event) {
+
+  event.preventDefault();
+
+
+  if (!user) {
+
+    showContactNotice(
+      "Sign in with Google first."
+    );
+
+    return;
+  }
+
+
+  const input = $("contactEmail");
+
+  const email =
+    input?.value.trim();
+
+
+  if (!email) {
+    return;
+  }
+
+
+  try {
+
+    await api(
+      "/api/contacts",
+      {
+        method: "POST",
+
+        body: JSON.stringify({
+          email
+        })
+      }
+    );
+
+
+    input.value = "";
+
+    showContactNotice(
+      "Contact added."
+    );
+
+
+    await loadContacts();
+
+
+  } catch (error) {
+
+    showContactNotice(
+      error.message
+    );
+  }
+}
+
+
+function showContactNotice(message) {
+
+  const notice =
+    $("contactNotice");
+
+  if (!notice) {
+    return;
+  }
+
+
+  notice.textContent =
+    message;
+
+
+  setTimeout(() => {
+
+    if (notice.textContent === message) {
+      notice.textContent = "";
+    }
+
+  }, 4000);
+}
+
+
+// ========================================
+// Favorites
+// ========================================
+
+async function loadFavorites() {
+
+  if (!user) {
+    return;
+  }
+
+
+  try {
+
+    const result =
+      await api("/api/favorites");
+
+
+    const list =
+      result.favorites ||
+      result ||
+      [];
+
+
+    renderFavorites(list);
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not load favorites:",
+      error
+    );
+
+
+    renderFavorites(
+      contacts.filter(
+        contact =>
+          contact.favorite ||
+          contact.is_favorite
+      )
+    );
+  }
+}
+
+
+function renderFavorites(list) {
+
+  const container =
+    $("favoriteList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!list.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No favorite contacts.
+      </div>`;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    list.map(contact => {
+
+      const displayName =
+        contact.name ||
+        contact.email ||
+        "Contact";
+
+
+      return `
+        <div class="row">
+
+          <div class="avatar">
+            ${
+              contact.picture
+                ? `<img src="${esc(contact.picture)}" alt="">`
+                : esc(initials(displayName))
+            }
+          </div>
+
+          <div>
+            <b>${esc(displayName)}</b>
+            <small>${esc(contact.email || "")}</small>
+          </div>
+
+          <button
+            data-favorite-call="${esc(contact.id || "")}"
+          >
+            ☎
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  container
+    .querySelectorAll("[data-favorite-call]")
+    .forEach(button => {
+
+      button.onclick = () => {
+
+        const contact =
+          contacts.find(
+            item =>
+              String(item.id) ===
+              String(
+                button.dataset.favoriteCall
+              )
+          );
+
+        if (contact) {
+          startCall(contact);
+        }
+
+      };
+
+    });
+}
+
+
+// ========================================
+// Messages
+// ========================================
+
+async function loadMessageContacts() {
+
+  const container =
+    $("messageContacts");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!user) {
+
+    container.innerHTML =
+      `<div class="empty">
+        Sign in first.
+      </div>`;
+
+    return;
+  }
+
+
+  if (!contacts.length) {
+    await loadContacts();
+  }
+
+
+  if (!contacts.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No contacts yet.
+      </div>`;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    contacts.map(contact => {
+
+      const displayName =
+        contact.name ||
+        contact.email ||
+        "Contact";
+
+
+      return `
+        <div
+          class="message-contact"
+          data-message-contact="${esc(contact.id || "")}"
+        >
+
+          <b>${esc(displayName)}</b>
+
+          <small>
+            ${esc(contact.email || "")}
+          </small>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  container
+    .querySelectorAll("[data-message-contact]")
+    .forEach(element => {
+
+      element.onclick = () => {
+
+        const contact =
+          contacts.find(
+            item =>
+              String(item.id) ===
+              String(
+                element.dataset.messageContact
+              )
+          );
+
+
+        if (contact) {
+          selectContact(contact);
+        }
+
+      };
+
+    });
+}
+
+
+async function selectContact(contact) {
+
+  activeContact = contact;
+
+
+  const head =
+    $("chatHead");
+
+
+  if (head) {
+
+    head.textContent =
+      contact.name ||
+      contact.email ||
+      "Contact";
+  }
+
+
+  document
+    .querySelectorAll(".message-contact")
+    .forEach(element => {
+
+      element.classList.toggle(
+        "active",
+        String(
+          element.dataset.messageContact
+        ) === String(contact.id)
+      );
+
+    });
+
+
+  await loadMessages(contact);
+}
+
+
+async function loadMessages(contact) {
+
+  const container =
+    $("chatMessages");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  try {
+
+    const result =
+      await api(
+        `/api/messages/${encodeURIComponent(contact.id)}`
+      );
+
+
+    const messages =
+      result.messages ||
+      result ||
+      [];
+
+
+    renderMessages(messages);
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not load messages:",
+      error
+    );
+
+
+    container.innerHTML =
+      `<div class="empty">
+        No messages yet.
+      </div>`;
+  }
+}
+
+
+function renderMessages(messages) {
+
+  const container =
+    $("chatMessages");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!messages.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No messages yet.
+      </div>`;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    messages.map(message => {
+
+      const mine =
+        String(message.sender_id) ===
+        String(user?.id);
+
+
+      return `
+        <div class="bubble ${mine ? "mine" : ""}">
+
+          ${esc(message.body || message.text || "")}
+
+          <small>
+            ${esc(message.created_at || "")}
+          </small>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  container.scrollTop =
+    container.scrollHeight;
+}
+
+
+async function sendMessage(event) {
+
+  event.preventDefault();
+
+
+  if (!user) {
+    alert("Sign in with Google first.");
+    return;
+  }
+
+
+  if (!activeContact) {
+    alert("Select a contact first.");
+    return;
+  }
+
+
+  const input =
+    $("messageBody");
+
+
+  const body =
+    input?.value.trim();
+
+
+  if (!body) {
+    return;
+  }
+
+
+  try {
+
+    const result =
+      await api(
+        "/api/messages",
+        {
+          method: "POST",
+
+          body: JSON.stringify({
+            contact_id:
+              activeContact.id,
+
+            body
+          })
+        }
+      );
+
+
+    input.value = "";
+
+
+    if (result.message) {
+
+      renderMessages([
+        ...(await getCurrentMessages()),
+        result.message
+      ]);
+
+    } else {
+
+      await loadMessages(activeContact);
+    }
+
+
+    if (socket) {
+
+      socket.emit(
+        "message",
+        {
+          contact_id:
+            activeContact.id,
+
+          body
+        }
+      );
+    }
+
+
+  } catch (error) {
+
+    alert(
+      "Could not send message: " +
+      error.message
+    );
+  }
+}
+
+
+async function getCurrentMessages() {
+
+  const container =
+    $("chatMessages");
+
+
+  if (!container) {
+    return [];
+  }
+
+
+  return [];
+}
+
+
+function handleIncomingMessage(message) {
+
+  if (
+    activeContact &&
+    String(message.sender_id) ===
+      String(activeContact.id)
+  ) {
+
+    loadMessages(activeContact);
+
+  }
+
+
+  const unread =
+    $("unread");
+
+
+  if (unread) {
+
+    unread.textContent =
+      String(
+        Number(unread.textContent || 0) + 1
+      );
+  }
+}
+
+
+// ========================================
+// Call History
+// ========================================
+
+async function loadHistory() {
+
+  const container =
+    $("historyList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!user) {
+
+    container.innerHTML =
+      `<div class="empty">
+        Sign in to see call history.
+      </div>`;
+
+    return;
+  }
+
+
+  try {
+
+    const result =
+      await api("/api/calls/history");
+
+
+    const history =
+      result.calls ||
+      result.history ||
+      result ||
+      [];
+
+
+    renderHistory(history);
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not load call history:",
+      error
+    );
+
+
+    container.innerHTML =
+      `<div class="empty">
+        No call history yet.
+      </div>`;
+  }
+}
+
+
+function renderHistory(history) {
+
+  const container =
+    $("historyList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!history.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No calls yet.
+      </div>`;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    history.map(call => {
+
+      const name =
+        call.name ||
+        call.email ||
+        "Unknown";
+
+
+      return `
+        <div class="row">
+
+          <div class="avatar">
+            ${esc(initials(name))}
+          </div>
+
+          <div>
+            <b>${esc(name)}</b>
+
+            <small>
+              ${esc(call.created_at || "")}
+            </small>
+          </div>
+
+          <button>
+            ${call.direction === "incoming" ? "↙" : "↗"}
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+// ========================================
+// Video calls
+// ========================================
+
+async function startCall(contact = null) {
+
+  if (!user) {
+
+    alert(
+      "Sign in with Google before starting a call."
+    );
+
+    return;
+  }
+
+
+  roomId =
+    crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random()
+          .toString(36)
+          .slice(2);
+
+
+  callId = roomId;
+
+
+  $("callModal")?.classList.remove("hidden");
+
+
+  if ($("roomCode")) {
+    $("roomCode").textContent =
+      roomId;
+  }
+
+
+  if ($("callTitle")) {
+
+    $("callTitle").textContent =
+      contact?.name
+        ? `Call with ${contact.name}`
+        : "varvatoVision Call";
+  }
+
+
+  if ($("callStatus")) {
+    $("callStatus").textContent =
+      "Starting camera...";
+  }
+
+
+  try {
+
+    localStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+
+    const local =
+      $("local");
+
+
+    if (local) {
+      local.srcObject =
+        localStream;
+    }
+
+
+    if ($("callStatus")) {
+      $("callStatus").textContent =
+        "Ready";
+    }
+
+
+    if (socket) {
+
+      socket.emit(
+        "call-start",
+        {
+          roomId,
+          contactId:
+            contact?.id || null
+        }
+      );
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not access camera:",
+      error
+    );
+
+
+    if ($("callStatus")) {
+      $("callStatus").textContent =
+        "Camera unavailable";
+    }
+
+
+    alert(
+      "Could not access your camera/microphone.\n\n" +
+      error.message
+    );
+  }
+}
+
+
+function endCall(sendSocket = true) {
+
+  if (sendSocket && socket && roomId) {
+
+    socket.emit(
+      "call-end",
+      {
+        roomId
+      }
+    );
+  }
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track => track.stop());
+
+    localStream = null;
+  }
+
+
+  const local =
+    $("local");
+
+
+  if (local) {
+    local.srcObject = null;
+  }
+
+
+  const remote =
+    $("remote");
+
+
+  if (remote) {
+    remote.srcObject = null;
+  }
+
+
+  $("callModal")?.classList.add("hidden");
+
+
+  roomId = null;
+  callId = null;
+}
+
+
+function toggleMute() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const audioTracks =
+    localStream.getAudioTracks();
+
+
+  audioTracks.forEach(track => {
+    track.enabled =
+      !track.enabled;
+  });
+
+
+  const muted =
+    audioTracks.length &&
+    !audioTracks[0].enabled;
+
+
+  if ($("mute")) {
+    $("mute").textContent =
+      muted ? "🔇" : "🎤";
+  }
+}
+
+
+function toggleCamera() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const videoTracks =
+    localStream.getVideoTracks();
+
+
+  videoTracks.forEach(track => {
+    track.enabled =
+      !track.enabled;
+  });
+
+
+  const disabled =
+    videoTracks.length &&
+    !videoTracks[0].enabled;
+
+
+  if ($("camera")) {
+    $("camera").textContent =
+      disabled ? "🚫" : "▣";
+  }
+}
+
+
+async function shareScreen() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  if (!navigator.mediaDevices?.getDisplayMedia) {
+
+    alert(
+      "Screen sharing is not supported by this browser."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const screenStream =
+      await navigator.mediaDevices.getDisplayMedia({
+        video: true
+      });
+
+
+    const screenTrack =
+      screenStream.getVideoTracks()[0];
+
+
+    const videoTrack =
+      localStream.getVideoTracks()[0];
+
+
+    if (videoTrack) {
+      localStream.removeTrack(videoTrack);
+    }
+
+
+    localStream.addTrack(screenTrack);
+
+
+    const local =
+      $("local");
+
+
+    if (local) {
+      local.srcObject =
+        localStream;
+    }
+
+
+    screenTrack.onended = () => {
+
+      localStream.removeTrack(screenTrack);
+
+      if (videoTrack) {
+        localStream.addTrack(videoTrack);
+      }
+
+      if (local) {
+        local.srcObject =
+          localStream;
+      }
+
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "Screen sharing failed:",
+      error
+    );
+  }
+}
+
+
+function copyLink() {
+
+  if (!roomId) {
+    return;
+  }
+
+
+  const link =
+    `${location.origin}${location.pathname}?room=${encodeURIComponent(roomId)}`;
+
+
+  navigator.clipboard
+    ?.writeText(link)
+    .then(() => {
+
+      if ($("copy")) {
+
+        const original =
+          $("copy").textContent;
+
+        $("copy").textContent =
+          "Copied!";
+
+        setTimeout(() => {
+          $("copy").textContent =
+            original;
+        }, 1500);
+      }
+
+    })
+    .catch(() => {
+
+      prompt(
+        "Copy this call link:",
+        link
+      );
+
+    });
+}
+
+
+// ========================================
+// Incoming calls
+// ========================================
+
+function handleIncomingCall(data) {
+
+  const accepted =
+    confirm(
+      "Incoming varvatoVision video call.\n\n" +
+      "Accept the call?"
+    );
+
+
+  if (!accepted) {
+
+    socket?.emit(
+      "call-rejected",
+      data
+    );
+
+    return;
+  }
+
+
+  startCall();
+
+
+  if (data?.roomId) {
+    roomId = data.roomId;
+  }
+}
+
+
+// ========================================
+// Settings
+// ========================================
+
+function updateSettings() {
+
+  const container =
+    $("settingsAccount");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!user) {
+
+    container.textContent =
+      "Not signed in.";
+
+    return;
+  }
+
+
+  container.innerHTML = `
+    <div class="row">
+
+      <div class="avatar">
+        ${
+          user.picture
+            ? `<img src="${esc(user.picture)}" alt="">`
+            : esc(initials(user.name))
+        }
+      </div>
+
+      <div>
+        <b>${esc(user.name || "Google User")}</b>
+        <small>${esc(user.email || "")}</small>
+      </div>
+
+    </div>
+  `;
+}
+
+
+// ========================================
+// Keyboard shortcut
+// ========================================
+
+document.addEventListener("keydown", event => {
+
+  if (
+    event.key === "Escape" &&
+    !$("callModal")?.classList.contains("hidden")
+  ) {
+
+    endCall();
+  }
+
+});
+```
     cancel_on_tap_outside: true
   });
 
