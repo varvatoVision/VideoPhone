@@ -1,0 +1,15 @@
+{
+  "name": "varvatovision-video-phone",
+  "version": "0.1",
+  "private": true,
+  "description": "varvatoVision Video Phone - deployable web app with Google sign-in, persistent accounts, contacts, messaging, call history, and WebRTC calls.",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cookie-session": "^2.1.0",
+    "express": "^5.1.0",
+    "google-auth-library": "^10.4.0",
+    "socket.io": "^4.8.1"
+  }
+}
