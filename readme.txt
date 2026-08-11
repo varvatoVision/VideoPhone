@@ -1,4 +1,4 @@
-# varvatoVision Video Phone — App Foundation that is FREE!
+varvatoVision Video Phone — App Foundation that is FREE!
 
 This version is a real deployable web application foundation rather than a static mockup.
 
